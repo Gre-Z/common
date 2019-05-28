@@ -21,11 +21,10 @@ func TestJsonTime_UnmarshalJSON(b *testing.T) {
 		fmt.Println(err)
 		return
 	}
-
 	fmt.Printf("转成常用时间格式: %s \n", string(bt))
-
-	err = json.Unmarshal(bt, t)
+	err = json.Unmarshal(bt, &t)
 	if err != nil {
+		fmt.Println(err)
 		return
 	}
 
