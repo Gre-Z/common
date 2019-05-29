@@ -21,7 +21,8 @@ import (
 //gorm model
 
 type DB struct {
-	Default *gorm.DB
+	myDefault *gorm.DB
+	models    []interface{}
 }
 
 type Options struct {
@@ -40,26 +41,33 @@ var db DB
 
 func Init(options Options) {
 	sql := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8mb4&parseTime=true&loc=Local", options.User, options.Password, options.Addr, options.Dbname)
-	db.Default, eor = gorm.Open("mysql", sql)
+	db.myDefault, eor = gorm.Open("mysql", sql)
 	if eor != nil {
 		panic(eor)
 	} else {
 		logs.Info("mysql connect success")
 	}
 
-	db.Default.SingularTable(options.SingularTable)
-	db.Default.LogMode(options.LogMode)
+	db.myDefault.SingularTable(options.SingularTable)
+	db.myDefault.LogMode(options.LogMode)
 	if options.MaxIdle > 0 {
-		db.Default.DB().SetMaxIdleConns(options.MaxIdle)
+		db.myDefault.DB().SetMaxIdleConns(options.MaxIdle)
 	}
 	if options.MaxOpen > 0 {
-		db.Default.DB().SetMaxOpenConns(options.MaxOpen)
+		db.myDefault.DB().SetMaxOpenConns(options.MaxOpen)
 	}
+	e := db.MysqlNew().AutoMigrate(db.models...).Error
+	fmt.Println(e)
+}
+
+func (DB) Register(values ...interface{}) {
+	db.models = append(db.models, values...)
+
 }
 
 func (DB) MysqlNew() *gorm.DB {
-	if db.Default == nil {
+	if db.myDefault == nil {
 		logs.Info("连接错误")
 	}
-	return db.Default.New()
+	return db.myDefault.New()
 }
