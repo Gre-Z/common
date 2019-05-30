@@ -6,7 +6,7 @@ import (
 )
 
 type Model struct {
-	Id        int64 `gorm:"primary_key"`
+	ID        int `gorm:"primary_key" json:"id"`
 	CreatedAt jtime.JsonTime
 	UpdatedAt jtime.JsonTime
 	DeletedAt *time.Time `sql:"index"`
