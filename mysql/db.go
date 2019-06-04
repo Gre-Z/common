@@ -57,7 +57,9 @@ func Init(options Options) {
 		db.myDefault.DB().SetMaxOpenConns(options.MaxOpen)
 	}
 	e := db.MysqlNew().AutoMigrate(db.models...).Error
-	fmt.Println(e)
+	if e != nil {
+		fmt.Println(e)
+	}
 }
 
 func (DB) Register(values ...interface{}) {
