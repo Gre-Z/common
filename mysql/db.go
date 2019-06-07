@@ -19,6 +19,7 @@ import (
 )
 
 //gorm model
+const defaultName = "default"
 
 type DB struct {
 	myDefault *gorm.DB
@@ -34,18 +35,34 @@ type Options struct {
 	LogMode       bool
 	MaxIdle       int
 	MaxOpen       int
+	ConnectName   string
+	AutoMigrate   bool
 }
 
+var dbs = make(map[string]*DB) //保存连接列表
 var eor error
-var db DB
+
+func init() {
+	dbs[defaultName] = new(DB)
+}
+
+func sql(user, password, addr, dbname string) string {
+	return fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8mb4&parseTime=true&loc=Local", user, password, addr, dbname)
+}
 
 func Init(options Options) {
-	sql := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8mb4&parseTime=true&loc=Local", options.User, options.Password, options.Addr, options.Dbname)
-	db.myDefault, eor = gorm.Open("mysql", sql)
+	db := new(DB)
+	connectName := defaultName
+	if !(len(dbs) == 0 || options.ConnectName == defaultName) {
+		connectName = options.ConnectName
+	}
+	dbs[connectName] = db
+
+	db.myDefault, eor = gorm.Open("mysql", sql(options.User, options.Password, options.Addr, options.Dbname))
 	if eor != nil {
 		panic(eor)
 	} else {
-		logs.Info("mysql connect success")
+		logs.Info(fmt.Sprintf("数据库[%s]连接成功", connectName))
 	}
 
 	db.myDefault.SingularTable(options.SingularTable)
@@ -56,20 +73,27 @@ func Init(options Options) {
 	if options.MaxOpen > 0 {
 		db.myDefault.DB().SetMaxOpenConns(options.MaxOpen)
 	}
-	e := db.MysqlNew().AutoMigrate(db.models...).Error
+
+	e := db.myDefault.AutoMigrate(db.models...).Error
 	if e != nil {
-		fmt.Println(e)
+		logs.Error(e)
 	}
 }
 
-func (DB) Register(values ...interface{}) {
+func (db DB) Register(values ...interface{}) {
 	db.models = append(db.models, values...)
-
+}
+func (db DB) MysqlNew() *gorm.DB {
+	return db.myDefault.New()
+}
+func Default() *DB {
+	return dbs[defaultName]
 }
 
-func (DB) MysqlNew() *gorm.DB {
-	if db.myDefault == nil {
-		logs.Info("连接错误")
+func Other(connectName string) (*DB) {
+	if db, ok := dbs[connectName]; ok {
+		return db
 	}
-	return db.myDefault.New()
+	logs.Error(fmt.Sprintf("数据库连接[%s]不存在", connectName))
+	return nil
 }
