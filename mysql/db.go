@@ -43,7 +43,10 @@ var dbs = make(map[string]*DB) //保存连接列表
 var eor error
 
 func init() {
-	dbs[defaultName] = new(DB)
+	dbs[defaultName] = &DB{
+		new(gorm.DB),
+		make([]interface{}, 0),
+	}
 }
 
 func sql(user, password, addr, dbname string) string {
@@ -53,10 +56,12 @@ func sql(user, password, addr, dbname string) string {
 func Init(options Options) {
 	db := new(DB)
 	connectName := defaultName
-	if !(len(dbs) == 0 || options.ConnectName == defaultName) {
+	if (len(dbs) == 0 || options.ConnectName == defaultName) {
+		db = dbs[connectName]
+	} else {
 		connectName = options.ConnectName
+		dbs[connectName] = db
 	}
-	dbs[connectName] = db
 
 	db.myDefault, eor = gorm.Open("mysql", sql(options.User, options.Password, options.Addr, options.Dbname))
 	if eor != nil {
@@ -73,14 +78,15 @@ func Init(options Options) {
 	if options.MaxOpen > 0 {
 		db.myDefault.DB().SetMaxOpenConns(options.MaxOpen)
 	}
-
-	e := db.myDefault.AutoMigrate(db.models...).Error
-	if e != nil {
-		logs.Error(e)
+	if options.AutoMigrate {
+		e := db.myDefault.AutoMigrate(db.models...).Error
+		if e != nil {
+			logs.Error(e)
+		}
 	}
 }
 
-func (db DB) Register(values ...interface{}) {
+func (db *DB) Register(values ...interface{}) {
 	db.models = append(db.models, values...)
 }
 func (db DB) MysqlNew() *gorm.DB {
