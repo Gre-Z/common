@@ -55,8 +55,9 @@ func sql(user, password, addr, dbname string) string {
 
 func Init(options Options) {
 	db := new(DB)
-	connectName := defaultName
-	if (len(dbs) == 0 || options.ConnectName == defaultName) {
+	connectName := cName(options.ConnectName)
+
+	if (connectName == defaultName) {
 		db = dbs[connectName]
 	} else {
 		connectName = options.ConnectName
@@ -86,14 +87,32 @@ func Init(options Options) {
 	}
 }
 
+func cName(connectName string) (c string) {
+	if connectName == "" || connectName == defaultName {
+		c = defaultName
+	} else {
+		c = connectName
+	}
+	return
+}
+
 func (db *DB) Register(values ...interface{}) {
 	db.models = append(db.models, values...)
 }
 func (db DB) MysqlNew() *gorm.DB {
 	return db.myDefault.New()
 }
+
 func Default() *DB {
 	return dbs[defaultName]
+}
+
+func New(connectName ...string) *gorm.DB {
+	if len(connectName) == 0 {
+		return Other(defaultName).MysqlNew()
+	} else {
+		return Other(connectName[0]).MysqlNew()
+	}
 }
 
 func Other(connectName string) (*DB) {
