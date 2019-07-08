@@ -107,12 +107,14 @@ func Default() *DB {
 	return dbs[defaultName]
 }
 
-func New(connectName ...string) *gorm.DB {
+func New(connectName ...string) (db *gorm.DB) {
 	if len(connectName) == 0 {
-		return Other(defaultName).MysqlNew()
+		db = Other(defaultName).MysqlNew()
 	} else {
-		return Other(connectName[0]).MysqlNew()
+		db = Other(connectName[0]).MysqlNew()
 	}
+
+	return
 }
 
 func Other(connectName string) (*DB) {
