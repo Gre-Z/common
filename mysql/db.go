@@ -103,6 +103,10 @@ func (db DB) MysqlNew() *gorm.DB {
 	return db.myDefault.New()
 }
 
+func Preload(db *gorm.DB) *gorm.DB {
+	return db.Set("gorm:auto_preload", true)
+}
+
 func Default() *DB {
 	return dbs[defaultName]
 }

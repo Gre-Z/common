@@ -24,7 +24,7 @@ type Options struct {
 	//DialTimeout        time.Duration
 	//ReadTimeout        time.Duration
 	//WriteTimeout       time.Duration
-	//PoolSize           int
+	PoolSize           int
 	//MinIdleConns       int
 	//MaxConnAge         time.Duration
 	//PoolTimeout        time.Duration
@@ -47,7 +47,9 @@ func Init(options Options) {
 		logs.Info(fmt.Sprintf("redis[%d] 连接成功", x.DB))
 	}
 }
-
+func RedisNew() *redis.Client {
+	return rd.myDefault
+}
 func (RD) RedisNew() *redis.Client {
 	return rd.myDefault
 }
