@@ -8,7 +8,12 @@ import (
 )
 
 type t struct {
+<<<<<<< HEAD
 	Tm TstampTime
+=======
+	//Tm time.Time
+	Tm TstampTime //将原本的 time.Time 替换称TstampTime
+>>>>>>> develop
 }
 
 func TestTstampTime_MarshalJSON(b *testing.T) {
@@ -20,11 +25,19 @@ func TestTstampTime_MarshalJSON(b *testing.T) {
 		fmt.Println(err)
 		return
 	}
+<<<<<<< HEAD
 	fmt.Printf("转成常用时间格式: %s \n", string(bt))
+=======
+	fmt.Printf("时间戳转成常用时间格式: %s \n", string(bt))
+>>>>>>> develop
 	err = json.Unmarshal(bt, t2)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
+<<<<<<< HEAD
 	fmt.Printf("转换成时间戳格式: %d \n", t2.Tm)
+=======
+	fmt.Printf("常用时间格式转换成时间戳格式: %d \n", t2.Tm)
+>>>>>>> develop
 }
